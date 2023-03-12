@@ -17,7 +17,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 import wandb
 import yaml
-
+from data_processing import process_data
 
 class MLP(nn.Module):
     """
@@ -51,7 +51,7 @@ class MLP(nn.Module):
         out = self.sigmoid(out) * 100.0 # Bound output between 0 and 100
         return out
 
-def k_fold_train(model, optimizer, criterion, k, train_data, batch_size, epochs):
+def k_fold_train(model, optimizer, criterion, k, train_data, batch_size, epochs, use_gpu):
     """
     Train the MLP using k-fold cross-validation.
 
@@ -63,7 +63,13 @@ def k_fold_train(model, optimizer, criterion, k, train_data, batch_size, epochs)
         train_data (Tensor): The training data. [n_samples, output_size + n_features]
         batch_size (int): The batch size for training.
         epochs (int): Number of epochs to train for.
+        use_gpu (bool): Whether to use a GPU or not.
     """
+    if use_gpu:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    else:
+        device = torch.device("cpu")
+    model.to(device)
     fold_size = len(train_data) // k
     validation_accuracies = []  # List to store validation accuracies for each fold
     for fold in range(k):
@@ -79,7 +85,7 @@ def k_fold_train(model, optimizer, criterion, k, train_data, batch_size, epochs)
         for epoch in range(epochs):
             running_loss = 0.0
             for i, data in enumerate(train_loader, 0):
-                inputs, labels = data[:,1:], data[:,0].unsqueeze(1)
+                inputs, labels = data[:,1:].to(device), data[:,0].unsqueeze(1).to(device)
                 optimizer.zero_grad()
                 outputs = model(inputs)
                 loss = criterion(outputs, labels)
@@ -95,7 +101,7 @@ def k_fold_train(model, optimizer, criterion, k, train_data, batch_size, epochs)
             correct = 0
             total = 0
             for data in valid_loader:
-                inputs, labels = data[:,1:], data[:,0].unsqueeze(1)
+                inputs, labels = data[:,1:].to(device), data[:,0].unsqueeze(1).to(device)
                 outputs = model(inputs)
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
@@ -110,19 +116,25 @@ def k_fold_train(model, optimizer, criterion, k, train_data, batch_size, epochs)
     mean_validation_accuracy = sum(validation_accuracies) / len(validation_accuracies)
     wandb.log({'mean_validation_accuracy': mean_validation_accuracy})
 
-def test(model, test_loader):
+def test(model, test_loader, use_gpu):
     """
     Evaluate the MLP on the test data.
 
     Args:
         model (nn.Module): The MLP model to evaluate.
         test_loader (DataLoader): DataLoader containing the test data.
+        use_gpu (bool): Whether to use a GPU or not.
     """
+    if use_gpu:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    else:
+        device = torch.device("cpu")
+    model.to(device)
     with torch.no_grad():
         correct = 0
         total = 0
         for data in test_loader:
-            inputs, labels = data[:,1:], data[:,0].unsqueeze(1)
+            inputs, labels = data[:,1:].to(device), data[:,0].unsqueeze(1).to(device)
             outputs = model(inputs)
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
@@ -133,6 +145,14 @@ def test(model, test_loader):
 
 if __name__ == "__main__":
 
+    # Push to GPU if necessary
+    gpu_number = "0"
+    if gpu_number:
+        import os
+        use_gpu = True
+        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+        os.environ["CUDA_VISIBLE_DEVICES"] = gpu_number
+
     # Load the sweep configuration from YAML file
     with open('sweep.yaml', 'r') as file:
         sweep_config = yaml.safe_load(file)
@@ -142,7 +162,7 @@ if __name__ == "__main__":
 
     # Define training function
     def train():
-        run = wandb.init()
+        wandb.init()
         
         # Define hyperparameters
         batch_size = wandb.config.batch_size
@@ -152,7 +172,7 @@ if __name__ == "__main__":
         k = 5
         
         # Load data
-        train_data = torch.randn(200, 11)
+        train_data = process_data("US News - GB2023Engineering - Embargoed Until 3-29-22.xlsx")
 
         # Define model, loss function, and optimizer
         model = MLP(10, hidden_size, 1)
@@ -160,10 +180,10 @@ if __name__ == "__main__":
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
         # Train and evaluate model
-        k_fold_train(model, optimizer, criterion, k, train_data, batch_size, epochs)
-        test(model, DataLoader(train_data, batch_size=batch_size))
+        k_fold_train(model, optimizer, criterion, k, train_data, batch_size, epochs, use_gpu)
+        test(model, DataLoader(train_data, batch_size=batch_size), use_gpu)
 
     # Run sweep
-    wandb.agent(sweep_id, train)
+    wandb.agent(sweep_id, lambda: train(use_gpu))
     
 
