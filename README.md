@@ -1,8 +1,58 @@
+![US News logo](https://www.ivycoach.com/content/uploads/2020/09/2021-US-News-College-Rankings.jpg)
+
 # RowanRankNet
 
 Welcome to RowanRankNet, the private GitHub repository for Rowan University. This repository contains the code and resources for training a neural network to predict the university's US News world ranking. The neural network uses a 3-layer architecture (input layer of size 10, hidden layer of size 10, and output layer of size 1), chosen based on the limited data and complexity of the prediction problem.
 
-![US News logo](https://www.ivycoach.com/content/uploads/2020/09/2021-US-News-College-Rankings.jpg)
+# Setting Up a Virtual Environment and Running MLP.py
+
+This guide will walk you through the steps to create a new virtual environment, install the required dependencies specified in the `requirements.txt` file, and run the `MLP.py` script. The training data and model weights will be stored using W&B.
+
+## Prerequisites
+
+Make sure you have the following installed on your system:
+
+- Python 3.6 or later
+- Git
+- W&B account (sign up [here](https://wandb.ai/site))
+
+## Creating a Virtual Environment
+
+1. Clone the repository to your local machine.
+
+   ```bash
+   git clone https://github.com/<username>/<repository_name>.git
+   ```
+
+2. Navigate to the project directory.
+    ```bash
+    cd <repository_name>
+    ```
+
+3. Create a new virtual environment.
+    ```bash
+    python3 -m venv venv
+    ```
+
+4. Activate the virtual environment.
+    ```bash
+    source venv/bin/activate
+    ```
+
+## Installing Dependencies
+
+1. Install the dependencies specified in the `requirements.txt` file.
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+## Running the Script
+
+1. Run the MLP.py script.
+    ```bash
+    python3 MLP.py
+    ```
+    The training data and model weights will be stored using W&B.
 
 ## Cross-validation with k-fold
 

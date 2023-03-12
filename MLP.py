@@ -1,15 +1,23 @@
 """
-Multilayer Perceptron (MLP) for regression with PyTorch.
+MLP Regression with PyTorch and WandB Hyperparameter Sweeps
 
-This implementation defines an MLP with one hidden layer and ReLU activation function, and trains it using stochastic gradient descent with mean squared error loss.
+This code demonstrates how to implement a multilayer perceptron (MLP) for regression with PyTorch, and how to use WandB's hyperparameter sweep functionality to find the best hyperparameters for the model. The MLP has one hidden layer and ReLU activation function, and is trained using stochastic gradient descent with mean squared error loss. 
 
-Data: Randomly generated 10-dimensional input and 1-dimensional output tensors using PyTorch's `randn()` function.
+The code includes a YAML file for configuring the hyperparameter sweep, and uses the Bayesian search method with a quantized logarithmic distribution for the learning rate.
+
 Author: Kyle Naddeo
+Last updated: March 12, 2023
+
+By logging the model's performance and hyperparameters to WandB, this code enables easy tracking and comparison of different hyperparameter configurations and allows for seamless collaboration with teammates.
 """
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.utils.data import DataLoader
+import wandb
+import yaml
+
 
 class MLP(nn.Module):
     """
@@ -24,7 +32,7 @@ class MLP(nn.Module):
         super(MLP, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.fc2 = nn.Linear(hidden_size, output_size)
-            self.relu = nn.ReLU()
+        self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
@@ -52,11 +60,12 @@ def k_fold_train(model, optimizer, criterion, k, train_data, batch_size, epochs)
         optimizer (Optimizer): The optimizer to use for training.
         criterion (Loss): The loss function to use for training.
         k (int): The number of folds for cross-validation.
-        train_data (Tensor): The training data.
+        train_data (Tensor): The training data. [n_samples, output_size + n_features]
         batch_size (int): The batch size for training.
         epochs (int): Number of epochs to train for.
     """
     fold_size = len(train_data) // k
+    validation_accuracies = []  # List to store validation accuracies for each fold
     for fold in range(k):
         # Split the data into training and validation folds
         validation_data = train_data[fold * fold_size: (fold + 1) * fold_size]
@@ -70,7 +79,7 @@ def k_fold_train(model, optimizer, criterion, k, train_data, batch_size, epochs)
         for epoch in range(epochs):
             running_loss = 0.0
             for i, data in enumerate(train_loader, 0):
-                inputs, labels = data
+                inputs, labels = data[:,1:], data[:,0].unsqueeze(1)
                 optimizer.zero_grad()
                 outputs = model(inputs)
                 loss = criterion(outputs, labels)
@@ -78,20 +87,28 @@ def k_fold_train(model, optimizer, criterion, k, train_data, batch_size, epochs)
                 optimizer.step()
                 running_loss += loss.item()
 
-            print(f"Fold {fold + 1}, Epoch {epoch + 1}, Training Loss: {running_loss / len(train_loader)}")
+            # Log training loss to wandb
+            wandb.log({'training_loss': running_loss / len(train_loader)})
 
         # Evaluate the model on the validation data
         with torch.no_grad():
             correct = 0
             total = 0
             for data in valid_loader:
-                inputs, labels = data
+                inputs, labels = data[:,1:], data[:,0].unsqueeze(1)
                 outputs = model(inputs)
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
+            
+            # Log validation accuracy to wandb
+            validation_accuracy = 100 * correct / total
+            wandb.log({'validation_accuracy': validation_accuracy})
+            validation_accuracies.append(validation_accuracy)
 
-            print(f"Fold {fold + 1}, Validation Accuracy: {100 * correct / total}")
+    # Calculate the mean validation accuracy
+    mean_validation_accuracy = sum(validation_accuracies) / len(validation_accuracies)
+    wandb.log({'mean_validation_accuracy': mean_validation_accuracy})
 
 def test(model, test_loader):
     """
@@ -105,29 +122,48 @@ def test(model, test_loader):
         correct = 0
         total = 0
         for data in test_loader:
-            inputs, labels = data
+            inputs, labels = data[:,1:], data[:,0].unsqueeze(1)
             outputs = model(inputs)
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
-        print(f"Test Accuracy: {100 * correct / total}")
+        # Log test accuracy to wandb
+        wandb.log({'test_accuracy': 100 * correct / total})
 
 if __name__ == "__main__":
-    # Define hyperparameters
-    input_size = 10
-    hidden_size = 10
-    output_size = 1
-    batch_size = 32
-    learning_rate = 0.01
-    epochs = 50
-    k = 5
 
-    # Define model, loss function, and optimizer
-    model = MLP(input_size, hidden_size, output_size)
-    criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    # Load the sweep configuration from YAML file
+    with open('sweep.yaml', 'r') as file:
+        sweep_config = yaml.safe_load(file)
 
-    # Load data
-    train_data = torch.randn(
+    # Initialize sweep
+    sweep_id = wandb.sweep(sweep_config, entity="naddeok", project="Rowan Rank Net")
+
+    # Define training function
+    def train():
+        run = wandb.init()
+        
+        # Define hyperparameters
+        batch_size = wandb.config.batch_size
+        learning_rate = wandb.config.learning_rate
+        hidden_size = wandb.config.hidden_size
+        epochs = wandb.config.epochs
+        k = 5
+        
+        # Load data
+        train_data = torch.randn(200, 11)
+
+        # Define model, loss function, and optimizer
+        model = MLP(10, hidden_size, 1)
+        criterion = nn.MSELoss()
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+        # Train and evaluate model
+        k_fold_train(model, optimizer, criterion, k, train_data, batch_size, epochs)
+        test(model, DataLoader(train_data, batch_size=batch_size))
+
+    # Run sweep
+    wandb.agent(sweep_id, train)
+    
 
