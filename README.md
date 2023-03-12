@@ -8,8 +8,22 @@ Welcome to RowanRankNet, the private GitHub repository for Rowan University. Thi
 
 We use k-fold cross-validation to ensure robust evaluation of the model's performance, splitting the dataset into training and validation sets. The model is trained and evaluated k times, with each subset serving as the validation set once and the remaining subsets as the training set. The final model performance is computed by averaging the metrics across the k iterations.
 
+## Publicly Available Data and Relevant Sources for Research Papers
+
+In addition to the data and resources provided in this repository, there are several publicly available data sources and relevant sources for research papers on university rankings. These include:
+
+- **[Times Higher Education (THE) World University Rankings](https://www.timeshighereducation.com/world-university-rankings/methodology-world-university-rankings-2021):** A widely recognized ranking system that evaluates universities based on several criteria, including research, teaching, and international outlook.
+
+- **[QS World University Rankings](https://www.topuniversities.com/qs-world-university-rankings/methodology):** A ranking system that evaluates universities based on several criteria, including academic reputation, employer reputation, and citations per faculty.
+
+- **[Center for World University Rankings (CWUR)](https://cwur.org/methodology/world-university-rankings.php):** A ranking system that evaluates universities based on several criteria, including research output, quality of education, and alumni employment.
+
+- **[Integrated Postsecondary Education Data System (IPEDS)](https://nces.ed.gov/ipeds/use-the-data):** A comprehensive data source for information on colleges and universities in the United States.
+
+We encourage researchers and practitioners to explore these resources and incorporate them into their research and analysis. 
+
 ## Usage
 
-The repository includes code for data preprocessing, model training and evaluation, hyperparameter tuning, and k-fold cross-validation.
+The repository includes code for data preprocessing, model training and evaluation, hyperparameter tuning, and k-fold cross-validation. We provide documentation on ethical guidelines and regulations for conducting research, as well as permissions and agreements for using the ranking data.
 
 We welcome contributions and collaborations from the Rowan community and external researchers and practitioners. Feel free to explore the code and resources and contact the repository owners with any questions or feedback.
