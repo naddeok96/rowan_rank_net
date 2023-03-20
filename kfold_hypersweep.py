@@ -51,7 +51,7 @@ class MLP(nn.Module):
         out = self.sigmoid(out) * 100.0 # Bound output between 0 and 100
         return out
 
-def k_fold_train(model, optimizer, criterion, k, train_data, batch_size, epochs, use_gpu):
+def k_fold_train(hidden_size, criterion, learning_rate, k, train_data, batch_size, epochs, use_gpu):
     """
     Train the MLP using k-fold cross-validation for regression.
 
@@ -69,11 +69,18 @@ def k_fold_train(model, optimizer, criterion, k, train_data, batch_size, epochs,
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     else:
         device = torch.device("cpu")
-    model.to(device)
+    
     fold_size = len(train_data) // k
     validation_losses = []  # List to store validation losses for each fold
     epoch_train_losses = []
     for fold in range(k):
+        # Initalize model
+        model = MLP(10, hidden_size, 1)
+        model.to(device)
+        
+        # Initalize optimizer
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+        
         # Split the data into training and validation folds
         validation_data = train_data[fold * fold_size: (fold + 1) * fold_size]
         training_data = torch.cat([train_data[:fold * fold_size], train_data[(fold + 1) * fold_size:]])
@@ -131,18 +138,54 @@ def k_fold_train(model, optimizer, criterion, k, train_data, batch_size, epochs,
         title="Training Loss for each Fold",
         xname="Epoch"
     )})
-    
 
     # Calculate the mean validation loss
     mean_validation_loss = sum(validation_losses) / len(validation_losses)
-    wandb.log({'mean_validation_loss': mean_validation_loss}, commit=False)
+    wandb.log({'mean_validation_loss': mean_validation_loss})
     
+def standard_train(hidden_size, criterion, learning_rate, train_data, batch_size, epochs, use_gpu):
+    if use_gpu:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    else:
+        device = torch.device("cpu")
+    
+    # Initalize model
+    model = MLP(10, hidden_size, 1)
+    model.to(device)
+    
+    # Initalize optimizer
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    
+    # Create data loaders for training and validation folds
+    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
+    
+    # Train the model for one epoch on the training data
+    epoch_losses = []
+    for epoch in range(epochs):
+        running_loss = 0.0
+        total_tested = 0.0
+        for i, data in enumerate(train_loader, 0):
+            inputs, labels = data[:,1:].to(device), data[:,0].unsqueeze(1).to(device)
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+            running_loss += loss.item()
+            total_tested += inputs.size(0)
+
+        epoch_train_loss = running_loss / total_tested
+        epoch_losses.append(epoch_train_loss)
+        
+        # Log training loss to wandb for each epoch without creating a chart
+        wandb.log({"final_epoch": epoch, "final_training_loss": epoch_train_loss})    
+        
     return model
 
 if __name__ == "__main__":
 
     # Push to GPU if necessary
-    gpu_number = "0"
+    gpu_number = "2"
     if gpu_number:
         import os
         use_gpu = True
@@ -171,12 +214,13 @@ if __name__ == "__main__":
         _, train_data = process_data("US News - GB2023Engineering - Embargoed Until 3-29-22.xlsx")
 
         # Define model, loss function, and optimizer
-        model = MLP(10, hidden_size, 1)
         criterion = nn.MSELoss()
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-
+        
         # Train and evaluate model
-        model = k_fold_train(model, optimizer, criterion, k, train_data, batch_size, epochs, use_gpu)
+        k_fold_train(hidden_size, criterion, learning_rate, k, train_data, batch_size, epochs, use_gpu)
+        
+        # Train on all
+        model = standard_train(hidden_size, criterion, learning_rate, train_data, batch_size, epochs, use_gpu)
         
         # Save 
         torch.save(model.state_dict(), "model_weights/" + run.name + '.pth')
