@@ -13,7 +13,6 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import wandb
-import yaml
 from data_processing import process_data
 from MLP import MLP
 
@@ -85,9 +84,9 @@ if __name__ == "__main__":
     
     # Define hyperparameters
     config = {  "batch_size"    : 200,
-                "learning_rate" : 0.9988,
-                "hidden_size"   : 296,
-                "epochs"        : 7
+                "learning_rate" : 0.01,
+                "hidden_size"   : 10,
+                "epochs"        : 100
                 }
 
     # Initialize W&B
