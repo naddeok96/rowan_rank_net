@@ -36,5 +36,5 @@ class MLP(nn.Module):
         out = self.fc1(x)
         out = self.relu(out)
         out = self.fc2(out)
-        out = self.sigmoid(out) * 100.0 # Bound output between 0 and 100
+        out = self.sigmoid(out) # Bound output between 0 and 100
         return out
