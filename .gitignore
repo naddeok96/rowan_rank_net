@@ -130,5 +130,4 @@ dmypy.json
 
 # WandB
 wandb/*
-model_weights/*
 *.out
