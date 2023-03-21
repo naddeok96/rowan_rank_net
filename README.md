@@ -43,7 +43,7 @@ Make sure you have the following installed on your system:
 
 1. Install the dependencies specified in the `requirements.txt` file.
     ```bash
-    pip install -r requirements.txt
+    pip3 install -r requirements.txt
     ```
 
 ## Running the Script
