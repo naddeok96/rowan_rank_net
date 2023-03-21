@@ -128,6 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# WandB
+# Personal
 wandb/*
 *.out
+.vscode/*
