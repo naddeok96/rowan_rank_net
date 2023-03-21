@@ -3,12 +3,13 @@ MLP Regression with PyTorch and WandB Hyperparameter Sweeps
 
 This code demonstrates how to implement a multilayer perceptron (MLP) for regression with PyTorch, and how to use WandB's hyperparameter sweep functionality to find the best hyperparameters for the model. The MLP has one hidden layer and ReLU activation function, and is trained using stochastic gradient descent with mean squared error loss. 
 
-The code includes a YAML file for configuring the hyperparameter sweep, and uses the Bayesian search method with a quantized logarithmic distribution for the learning rate.
+The code includes a YAML file for configuring the hyperparameter sweep, and uses the Bayesian search method.
+
+By logging the model's performance and hyperparameters to WandB, this code enables easy tracking and comparison of different hyperparameter configurations and allows for seamless collaboration with teammates.
 
 Author: Kyle Naddeo
 Last updated: March 12, 2023
 
-By logging the model's performance and hyperparameters to WandB, this code enables easy tracking and comparison of different hyperparameter configurations and allows for seamless collaboration with teammates.
 """
 
 import torch
@@ -113,6 +114,22 @@ def k_fold_train(hidden_size, criterion, learning_rate, k, train_data, batch_siz
     wandb.log({'mean_validation_loss': mean_validation_loss})
     
 def standard_train(hidden_size, criterion, learning_rate, train_data, batch_size, epochs, use_gpu):
+    """
+    Train an MLP model on a given dataset using specified hyperparameters.
+
+    Args:
+        hidden_size (int): The number of hidden units in the MLP.
+        criterion (torch.nn.modules.loss._Loss): The loss function used to evaluate the model.
+        learning_rate (float): The learning rate for the optimizer.
+        train_data (torch.Tensor): The training data, represented as a tensor.
+        batch_size (int): The batch size used for training.
+        epochs (int): The number of epochs to train the model for.
+        use_gpu (bool): Whether to use GPU acceleration for training.
+
+    Returns:
+        torch.nn.Module: The trained MLP model.
+    """
+    
     if use_gpu:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     else:

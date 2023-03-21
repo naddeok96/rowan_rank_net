@@ -1,3 +1,9 @@
+"""
+Summary: This script contains the implementation of a Multilayer Perceptron (MLP) with one hidden layer using PyTorch.
+Author: Kyle Naddeo
+Date: 2023-03-21
+"""
+
 # Imports
 import torch.nn as nn
 

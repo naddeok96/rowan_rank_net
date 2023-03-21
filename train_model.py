@@ -1,3 +1,12 @@
+"""
+Summary: This script defines a standard training function for a multilayer perceptron (MLP) 
+and trains the model on a given dataset using hyperparameters specified in a configuration dictionary. 
+The trained model is then saved as a PyTorch state dictionary in a file named after the W&B run ID.
+
+Author: Kyle Naddeo
+Date: March 21, 2023
+"""
+
 # Imports
 import torch
 import torch.nn as nn
@@ -9,6 +18,23 @@ from data_processing import process_data
 from MLP import MLP
 
 def standard_train(hidden_size, criterion, learning_rate, train_data, batch_size, epochs, use_gpu):
+    """
+    Train an MLP model on a given dataset using specified hyperparameters.
+
+    Args:
+        hidden_size (int): The number of hidden units in the MLP.
+        criterion (torch.nn.modules.loss._Loss): The loss function used to evaluate the model.
+        learning_rate (float): The learning rate for the optimizer.
+        train_data (torch.Tensor): The training data, represented as a tensor.
+        batch_size (int): The batch size used for training.
+        epochs (int): The number of epochs to train the model for.
+        use_gpu (bool): Whether to use GPU acceleration for training.
+
+    Returns:
+        torch.nn.Module: The trained MLP model.
+    """
+
+    # Push to GPU
     if use_gpu:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     else:
@@ -21,7 +47,7 @@ def standard_train(hidden_size, criterion, learning_rate, train_data, batch_size
     # Initalize optimizer
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     
-    # Create data loaders for training and validation folds
+    # Create data loader for training
     train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
     
     # Train the model for one epoch on the training data
@@ -49,7 +75,7 @@ def standard_train(hidden_size, criterion, learning_rate, train_data, batch_size
 
 if __name__ == "__main__":
 
-    # Push to GPU if necessary
+    # Define GPU
     gpu_number = "4"
     if gpu_number:
         import os
