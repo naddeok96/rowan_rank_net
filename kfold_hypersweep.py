@@ -18,38 +18,7 @@ from torch.utils.data import DataLoader
 import wandb
 import yaml
 from data_processing import process_data
-
-class MLP(nn.Module):
-    """
-    Multilayer Perceptron (MLP) with one hidden layer.
-
-    Args:
-        input_size (int): Size of the input tensor.
-        hidden_size (int, optional): Number of neurons in the hidden layer (default: 10).
-        output_size (int, optional): Size of the output tensor (default: 1).
-    """
-    def __init__(self, input_size=10, hidden_size=10, output_size=1):
-        super(MLP, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, output_size)
-        self.relu = nn.ReLU()
-        self.sigmoid = nn.Sigmoid()
-
-    def forward(self, x):
-        """
-        Forward pass through the MLP.
-
-        Args:
-            x (torch.Tensor): Input tensor of shape (batch_size, input_size).
-
-        Returns:
-            torch.Tensor: Output tensor of shape (batch_size, output_size).
-        """
-        out = self.fc1(x)
-        out = self.relu(out)
-        out = self.fc2(out)
-        out = self.sigmoid(out) * 100.0 # Bound output between 0 and 100
-        return out
+from MLP import MLP
 
 def k_fold_train(hidden_size, criterion, learning_rate, k, train_data, batch_size, epochs, use_gpu):
     """
@@ -220,10 +189,7 @@ if __name__ == "__main__":
         k_fold_train(hidden_size, criterion, learning_rate, k, train_data, batch_size, epochs, use_gpu)
         
         # Train on all
-        model = standard_train(hidden_size, criterion, learning_rate, train_data, batch_size, epochs, use_gpu)
-        
-        # Save 
-        torch.save(model.state_dict(), "model_weights/" + run.name + '.pth')
+        standard_train(hidden_size, criterion, learning_rate, train_data, batch_size, epochs, use_gpu)
 
     # Run sweep
     wandb.agent(sweep_id, lambda: train(use_gpu))
