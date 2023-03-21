@@ -18,8 +18,10 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 import wandb
 import yaml
+from sklearn.model_selection import KFold
 from data_processing import process_data
 from MLP import MLP
+import argparse
 
 def k_fold_train(hidden_size, criterion, learning_rate, k, train_data, batch_size, epochs, use_gpu):
     """
@@ -40,10 +42,11 @@ def k_fold_train(hidden_size, criterion, learning_rate, k, train_data, batch_siz
     else:
         device = torch.device("cpu")
     
-    fold_size = len(train_data) // k
+    kf = KFold(n_splits=k, shuffle=True)
+
     validation_losses = []  # List to store validation losses for each fold
     epoch_train_losses = []
-    for fold in range(k):
+    for fold, (train_indices, val_indices) in enumerate(kf.split(train_data)):
         # Initalize model
         model = MLP(10, hidden_size, 1)
         model.to(device)
@@ -52,8 +55,8 @@ def k_fold_train(hidden_size, criterion, learning_rate, k, train_data, batch_siz
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
         
         # Split the data into training and validation folds
-        validation_data = train_data[fold * fold_size: (fold + 1) * fold_size]
-        training_data = torch.cat([train_data[:fold * fold_size], train_data[(fold + 1) * fold_size:]])
+        training_data = train_data[train_indices]
+        validation_data = train_data[val_indices]
 
         # Create data loaders for training and validation folds
         train_loader = DataLoader(training_data, batch_size=batch_size, shuffle=True)
@@ -169,14 +172,16 @@ def standard_train(hidden_size, criterion, learning_rate, train_data, batch_size
     return model
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Training script for Rowan Rank Net")
+    parser.add_argument("--gpu_number", type=str, default="", help="Specify GPU number to use (default: None)")
+    args = parser.parse_args()
 
     # Push to GPU if necessary
-    gpu_number = "2"
-    if gpu_number:
+    if args.gpu_number:
         import os
         use_gpu = True
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-        os.environ["CUDA_VISIBLE_DEVICES"] = gpu_number
+        os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_number
 
     # Load the sweep configuration from YAML file
     with open('sweep.yaml', 'r') as file:
