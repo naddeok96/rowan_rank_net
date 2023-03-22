@@ -58,7 +58,7 @@ Make sure you have the following installed on your system:
 
 By logging the model's performance and hyperparameters to W&B, the code enables easy tracking and comparison of different hyperparameter configurations, and allows for seamless collaboration with teammates.
 
-For your convenience, I've also included the YAML file contents you provided. This YAML file is used to configure the hyperparameter sweep:
+This YAML file is used to configure the hyperparameter sweep:
 
 ```yaml
 method: bayes
