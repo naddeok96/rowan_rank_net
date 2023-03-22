@@ -132,4 +132,3 @@ dmypy.json
 wandb/*
 *.out
 .vscode/*
-min_max_values.xlsx
