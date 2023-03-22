@@ -84,9 +84,9 @@ if __name__ == "__main__":
     
     # Define hyperparameters
     config = {  "batch_size"    : 200,
-                "learning_rate" : 0.01,
-                "hidden_size"   : 10,
-                "epochs"        : 100
+                "learning_rate" : 0.024702830499110817,
+                "hidden_size"   : 464,
+                "epochs"        : 90
                 }
 
     # Initialize W&B
