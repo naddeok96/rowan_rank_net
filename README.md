@@ -2,7 +2,7 @@
 
 # RowanRankNet
 
-Welcome to RowanRankNet, the private GitHub repository for Rowan University. This repository contains the code and resources for training a neural network to predict the university's US News world ranking. The neural network uses a 3-layer architecture (input layer of size 10, hidden layer of size 10, and output layer of size 1), chosen based on the limited data and complexity of the prediction problem.
+Welcome to RowanRankNet, the public GitHub repository for Rowan University. This repository contains the code and resources for training a neural network to predict the university's US News world ranking. The neural network uses a 3-layer architecture (input layer of size 10, hidden layer of size 10, and output layer of size 1), chosen based on the limited data and complexity of the prediction problem.
 
 # Setting Up a Virtual Environment and Running MLP.py
 
