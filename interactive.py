@@ -6,10 +6,10 @@ from MLP import MLP
 import pandas as pd
 
 # Create an instance of the MLP model
-model = MLP(input_size=10, hidden_size=10, output_size=1)
+model = MLP(input_size=10, hidden_size=464, output_size=1)
 
 # Load the pre-trained weights from file
-model_weights_path = "model_weights/sparkling-rain-11957.pth"
+model_weights_path = "model_weights/young-sound-12302.pth"
 model.load_state_dict(torch.load(model_weights_path))
 model.eval()
 
