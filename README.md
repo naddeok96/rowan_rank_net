@@ -158,12 +158,11 @@ If you're using Windows Subsystem for Linux (WSL), activate XLaunch before runni
 ```bash
 python3 interactive.py
 ```
+Below is an exaple of the GUI.
 
 ![GUI](example_of_gui.png)
 
 These default values correspond to Rowan University's metrics. 
-
-
 
 ## Cross-validation with k-fold
 
