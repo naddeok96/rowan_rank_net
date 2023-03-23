@@ -9,12 +9,12 @@ import pandas as pd
 model = MLP(input_size=10, hidden_size=464, output_size=1)
 
 # Load the pre-trained weights from file
-model_weights_path = "model_weights/young-sound-12302.pth"
+model_weights_path = "model_weights/curious-spaceship-12304.pth"
 model.load_state_dict(torch.load(model_weights_path))
 model.eval()
 
 # Read the min and max values from the saved file
-min_max_df = pd.read_excel("min_max_values.xlsx")
+min_max_df = pd.read_excel("data/min_max_values.xlsx")
 
 # Create a dictionary to store the min and max values for each column
 min_max_dict = {}
