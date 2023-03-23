@@ -92,8 +92,14 @@ if __name__ == "__main__":
     # Initialize W&B
     run = wandb.init(config=config, entity="naddeok", project="Rowan Rank Net")
                 
-    # Load data
-    _, train_data = process_data("US News - GB2023Engineering - Embargoed Until 3-29-22.xlsx")
+    # Check if preprocessed data file exists
+    preprocessed_data_file = "data/preprocessed_data.pt"
+    if os.path.exists(preprocessed_data_file):
+        # Load preprocessed data from file
+        train_data = torch.load(preprocessed_data_file)
+    else:
+        # Preprocess data and save to file
+        _, train_data = process_data("data/US News - GB2023Engineering - Embargoed Until 3-29-22.xlsx")
 
     # Define model, loss function, and optimizer
     criterion = nn.MSELoss()
