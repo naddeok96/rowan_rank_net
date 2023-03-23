@@ -188,7 +188,7 @@ if __name__ == "__main__":
         sweep_config = yaml.safe_load(file)
 
     # Initialize sweep
-    sweep_id = wandb.sweep(sweep_config, entity="naddeok", project="Rowan Rank Net")
+    sweep_id = wandb.sweep(sweep_config, entity="naddeok", project="Rowan Rank Net v2.0")
 
     # Define training function
     def train(use_gpu):
@@ -201,8 +201,14 @@ if __name__ == "__main__":
         epochs = wandb.config.epochs
         k = wandb.config.k
         
-        # Load data
-        _, train_data = process_data("US News - GB2023Engineering - Embargoed Until 3-29-22.xlsx")
+        # Check if preprocessed data file exists
+        preprocessed_data_file = "data/preprocessed_data.pt"
+        if os.path.exists(preprocessed_data_file):
+            # Load preprocessed data from file
+            train_data = torch.load(preprocessed_data_file)
+        else:
+            # Preprocess data and save to file
+            _, train_data = process_data("data/US News - GB2023Engineering - Embargoed Until 3-29-22.xlsx")
 
         # Define model, loss function, and optimizer
         criterion = nn.MSELoss()
