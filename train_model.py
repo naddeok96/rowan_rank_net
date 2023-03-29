@@ -75,7 +75,7 @@ def standard_train(hidden_size, criterion, learning_rate, train_data, batch_size
 if __name__ == "__main__":
 
     # Define GPU
-    gpu_number = "4"
+    gpu_number = "5"
     if gpu_number:
         import os
         use_gpu = True
@@ -83,10 +83,10 @@ if __name__ == "__main__":
         os.environ["CUDA_VISIBLE_DEVICES"] = gpu_number
     
     # Define hyperparameters
-    config = {  "batch_size"    : 200,
-                "learning_rate" : 0.024702830499110817,
-                "hidden_size"   : 464,
-                "epochs"        : 90
+    config = {  "batch_size"    : 32,
+                "learning_rate" : 0.0001,
+                "hidden_size"   : 2048,
+                "epochs"        : 10000
                 }
 
     # Initialize W&B
